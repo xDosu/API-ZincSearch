@@ -8,7 +8,6 @@ import(
 	"io"
 )
 
-
 func ReadJSON(filepath string) (string, error) {
 	jsonFile, err := os.Open(filepath)
 	if err != nil {

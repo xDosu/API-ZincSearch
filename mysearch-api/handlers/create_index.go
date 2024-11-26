@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-const zincBaseURL = "http://localhost:4080"
-
 func CreateIndex(jsonContent, user, password string) error {
 	// Crear la solicitud HTTP
 	zincURL := fmt.Sprintf("%s/api/index/", zincBaseURL)

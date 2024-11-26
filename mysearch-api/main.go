@@ -1,34 +1,40 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"mysearch-api/handlers"
-	"mysearch-api/utils"
+	"net/http"
 )
 
 func main() {
-	// // Cargar datos del índice desde un archivo JSON
-	// indexData, err := handlers.CreateIndexerFromJsonFile("output.ndjson")
+	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+			return
+		}
 
-	// if err != nil {
-	// 	log.Fatalf("Error loading index data: %v", err)
-	// }
+		// Decodificar la solicitud
+		var searchRequest handlers.SearchRequest
+		err := json.NewDecoder(r.Body).Decode(&searchRequest)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error al decodificar la solicitud: %v", err), http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
 
-	// // Subir el índice a ZincSearch
-	// if err := handlers.UploadIndexOnZincSearch(indexData, "admin", "admin"); err != nil {
-	// 	log.Fatalf("Error uploading index: %v", err)
-	// }
+		// Realizar la búsqueda
+		searchResponse, err := handlers.Search(searchRequest, "admin", "admin")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error en la búsqueda: %v", err), http.StatusInternalServerError)
+			return
+		}
 
-	// index, err := utils.ReadJSON("index.json")
+		// Enviar la respuesta al cliente
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(searchResponse)
+	})
 
-	// if(err == nil) {
-	// 	handlers.CreateIndex(index, "admin", "admin")
-	// }
-
-	//handlers.DeleteIndex("admin", "admin", "email")
-
-
-	ndjsonContent, err := utils.ReadJSON("output.ndjson")
-	if (err == nil) {
-		handlers.BulkInsertion(ndjsonContent, "admin", "admin")
-	}
+	fmt.Println("Servidor iniciado en http://localhost:8080")
+	http.ListenAndServe(":8080", nil)
 }
